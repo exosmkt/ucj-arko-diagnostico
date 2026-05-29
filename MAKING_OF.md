@@ -80,7 +80,15 @@ de lucros foi lançada como despesa. A clínica, na verdade, dá lucro.)*
 
 **c) Fallback de modelo** — descrito acima: garante que a análise sempre conclui.
 
-## 6. Outras decisões técnicas (e os porquês)
+## 6. Dashboard financeiro
+
+Além do diagnóstico em texto, o app monta um **dashboard visual** (Chart.js) que dá à cliente o
+panorama que ela nunca teve: um donut separando **despesas da clínica × despesas pessoais lançadas na
+PJ** (e o total "escondido" em destaque), uma barra de **quanto cada sócia recebeu** vs. o % de cotas
+(expõe a distribuição desproporcional), a **receita por fonte** e **para onde vai o dinheiro na PF**.
+Os números do dashboard vêm da mesma extração auditada — não são estimativas.
+
+## 7. Outras decisões técnicas (e os porquês)
 
 - **PDF → texto (`pdftotext -layout`) em vez de imagem.** Testei as duas. O `-layout` preserva a tabela
   da DRE com os números exatos, gera payload minúsculo (menos rate-limit, mais rápido) e funciona em
