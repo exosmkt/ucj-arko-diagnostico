@@ -83,6 +83,73 @@ function setStep(id, state) {
 // ---------- render ----------
 const GRAV = { alta: "bg-red-500/15 text-red-300 border-red-500/30", media: "bg-amber-500/15 text-amber-300 border-amber-500/30", baixa: "bg-sky-500/15 text-sky-300 border-sky-500/30" };
 const esc = (s) => String(s ?? "").replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+const brl0 = (n) => "R$ " + Number(n || 0).toLocaleString("pt-BR", { maximumFractionDigits: 0 });
+
+// ----- Dashboard financeiro -----
+function dashboardSection(db) {
+  if (!db) return "";
+  const pessoal = (db.despesas_pj || []).filter((x) => (x.tipo || "").toLowerCase() === "pessoal").reduce((s, x) => s + Number(x.valor || 0), 0);
+  return `
+    <div class="card rounded-2xl p-6 mb-8 fade-in">
+      <h3 class="text-lg font-bold mb-1">📊 Dashboard financeiro</h3>
+      <p class="text-sm text-slate-500 mb-5">O panorama que a Dra. nunca teve: para onde o dinheiro vai, e o que é da clínica × do bolso.</p>
+      <div class="grid md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-sm font-semibold mb-2">Despesas da empresa: clínica × pessoal</div>
+          <div class="relative" style="height:220px"><canvas id="ch_desp"></canvas></div>
+          ${pessoal > 0 ? `<p class="text-xs text-amber-300 mt-2 text-center">⚠ ${brl0(pessoal)} em despesas pessoais lançadas dentro da PJ</p>` : ""}
+        </div>
+        <div>
+          <div class="text-sm font-semibold mb-2">Quanto cada sócia recebeu (distribuição)</div>
+          <div class="relative" style="height:220px"><canvas id="ch_socios"></canvas></div>
+        </div>
+        <div>
+          <div class="text-sm font-semibold mb-2">Receita da empresa por fonte</div>
+          <div class="relative" style="height:220px"><canvas id="ch_receita"></canvas></div>
+        </div>
+        <div>
+          <div class="text-sm font-semibold mb-2">Para onde vai o dinheiro (pessoa física)</div>
+          <div class="relative" style="height:220px"><canvas id="ch_pf"></canvas></div>
+        </div>
+      </div>
+    </div>`;
+}
+
+const PALETTE = ["#34d399", "#22d3ee", "#a78bfa", "#fbbf24", "#f87171", "#60a5fa", "#f472b6"];
+function mkChart(id, type, labels, values, opts = {}) {
+  const el = document.getElementById(id);
+  if (!el || !labels.length) return;
+  Chart.defaults.color = "#94a3b8";
+  Chart.defaults.font.family = "Inter, sans-serif";
+  new Chart(el, {
+    type,
+    data: { labels, datasets: [{ data: values, backgroundColor: opts.single ? "#34d399" : PALETTE, borderColor: "rgba(0,0,0,0.2)", borderWidth: 1 }] },
+    options: {
+      indexAxis: opts.horizontal ? "y" : "x",
+      plugins: { legend: { display: !opts.horizontal && type !== "bar", position: "bottom", labels: { boxWidth: 12, font: { size: 11 } } } },
+      scales: opts.horizontal || type === "bar" ? { x: { grid: { color: "rgba(255,255,255,0.05)" }, ticks: { callback: (v) => "R$ " + (v / 1000) + "k" } }, y: { grid: { display: false } } } : {},
+      responsive: true, maintainAspectRatio: false,
+    },
+  });
+}
+
+function drawCharts(db) {
+  if (!db || typeof Chart === "undefined") return;
+  // despesas clínica vs pessoal
+  const desp = db.despesas_pj || [];
+  const clin = desp.filter((x) => (x.tipo || "").toLowerCase() !== "pessoal").reduce((s, x) => s + Number(x.valor || 0), 0);
+  const pess = desp.filter((x) => (x.tipo || "").toLowerCase() === "pessoal").reduce((s, x) => s + Number(x.valor || 0), 0);
+  mkChart("ch_desp", "doughnut", ["Clínica", "Pessoal (na PJ)"], [clin, pess]);
+  // sócios
+  const soc = db.distribuicao_socios || [];
+  mkChart("ch_socios", "bar", soc.map((s) => `${s.socio} (${s.cotas_pct}%)`), soc.map((s) => Number(s.valor_recebido || 0)), { horizontal: true, single: true });
+  // receita por fonte
+  const rec = db.receita_pj_por_fonte || [];
+  mkChart("ch_receita", "doughnut", rec.map((r) => r.fonte), rec.map((r) => Number(r.valor || 0)));
+  // PF saídas
+  const pf = db.pf_saidas_por_categoria || [];
+  mkChart("ch_pf", "bar", pf.map((p) => p.categoria), pf.map((p) => Number(p.valor || 0)), { horizontal: true, single: true });
+}
 
 function render(data) {
   const d = data.diagnostico || {};
@@ -136,6 +203,8 @@ function render(data) {
         <p class="text-slate-200 leading-relaxed">${esc(d.resumo_executivo)}</p>
       </div>
     </div>
+
+    ${dashboardSection(d.dashboard)}
 
     <!-- painel auditoria (destaque) -->
     <div class="card rounded-2xl p-6 mb-8 border-cyan-500/25 fade-in" style="background:linear-gradient(180deg,rgba(34,211,238,.06),rgba(255,255,255,.02))">
@@ -203,5 +272,6 @@ function render(data) {
   $("loading").classList.add("hidden");
   $("results").innerHTML = html;
   $("results").classList.remove("hidden");
+  drawCharts(d.dashboard);
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
