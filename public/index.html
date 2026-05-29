@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arko Diagnóstico — IA que separa PF de PJ e audita os próprios números</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    h1,h2,h3,.font-display { font-family: 'Sora', sans-serif; }
+    .gradient-text { background: linear-gradient(90deg,#34d399,#22d3ee); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); }
+    .spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }
+    .fade-in { animation: fade .5s ease both; } @keyframes fade { from { opacity:0; transform: translateY(8px);} to {opacity:1;transform:none;} }
+    .dropzone.drag { border-color:#34d399; background: rgba(52,211,153,.08); }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+  <div class="max-w-6xl mx-auto px-5 py-8">
+
+    <!-- Header -->
+    <header class="flex items-center justify-between mb-10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-cyan-400 flex items-center justify-center text-slate-950 font-extrabold text-xl">↗</div>
+        <div>
+          <div class="font-display font-extrabold text-xl leading-none">Arko <span class="gradient-text">Diagnóstico</span></div>
+          <div class="text-xs text-slate-400 mt-0.5">Consultoria financeira com IA · PF × PJ</div>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500">powered by Gemma · UCJ</div>
+    </header>
+
+    <!-- Hero / Uploader -->
+    <section id="uploader">
+      <div class="text-center max-w-2xl mx-auto mb-8">
+        <h1 class="text-3xl md:text-4xl font-extrabold leading-tight mb-3">Quanto realmente <span class="gradient-text">sobra</span> no fim do mês?</h1>
+        <p class="text-slate-400">Envie o briefing, a DRE da empresa e o extrato pessoal. A IA cruza tudo, separa o que é PF do que é PJ, encontra os erros — e <b class="text-slate-200">audita os próprios números</b> antes de te entregar.</p>
+      </div>
+
+      <div id="dropzone" class="dropzone card rounded-2xl border-2 border-dashed border-slate-700 p-10 text-center transition cursor-pointer max-w-2xl mx-auto">
+        <input id="fileInput" type="file" accept="application/pdf" multiple class="hidden" />
+        <div class="text-4xl mb-3">📄</div>
+        <div class="font-semibold mb-1">Arraste os PDFs aqui ou clique para selecionar</div>
+        <div class="text-sm text-slate-500">Briefing · DRE (PJ) · Extrato (PF)</div>
+        <div id="fileList" class="mt-4 text-sm text-emerald-300 space-y-1"></div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3 justify-center mt-6">
+        <button id="analyzeBtn" disabled class="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 font-bold disabled:opacity-40 disabled:cursor-not-allowed transition">Analisar documentos</button>
+        <button id="exampleBtn" class="px-6 py-3 rounded-xl border border-slate-700 hover:border-slate-500 font-semibold transition">▶ Usar caso de exemplo (Dra. Carla)</button>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <section id="loading" class="hidden max-w-md mx-auto mt-16 text-center">
+      <div class="w-12 h-12 border-4 border-slate-700 border-t-emerald-400 rounded-full spin mx-auto mb-6"></div>
+      <div class="space-y-3 text-left">
+        <div id="step1" class="flex items-center gap-3 text-slate-400"><span class="step-ic">○</span> <span>Passo 1 — Diagnóstico <span class="text-slate-500">(Consultor de Elite)</span></span></div>
+        <div id="step2" class="flex items-center gap-3 text-slate-400"><span class="step-ic">○</span> <span>Passo 2 — Auditoria <span class="text-slate-500">(Auditor Cético recalcula os números)</span></span></div>
+      </div>
+      <p class="text-xs text-slate-600 mt-6">Modelo gratuito e aberto pode levar ~1 min. Vale a pena.</p>
+    </section>
+
+    <!-- Results -->
+    <section id="results" class="hidden mt-10"></section>
+
+    <!-- Error -->
+    <div id="error" class="hidden mt-10 max-w-2xl mx-auto card rounded-xl p-5 border-red-500/40 text-red-300"></div>
+
+    <footer class="mt-20 text-center text-xs text-slate-600">
+      Dados do caso são fictícios (treinamento). A IA não substitui contador/consultor humano — é uma ferramenta de diagnóstico inicial.
+    </footer>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
