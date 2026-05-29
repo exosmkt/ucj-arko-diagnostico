@@ -1,7 +1,7 @@
 FROM node:20-slim
 
-# poppler-utils fornece pdftotext/pdftoppm (extração de texto/imagem dos PDFs)
-RUN apt-get update && apt-get install -y --no-install-recommends poppler-utils \
+# poppler-utils: pdftotext/pdftoppm (extração dos PDFs) · curl: usado pelo healthcheck do Coolify
+RUN apt-get update && apt-get install -y --no-install-recommends poppler-utils curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
